@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if vehiculo else 'Registrar' }} Vehículo - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-car-front"></i> {{ 'Editar' if vehiculo else 'Registrar' }} Vehículo</h1>
+            <p class="text-muted">Cliente: <strong>{{ cliente.nombre_completo }}</strong></p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="placa" class="form-label">Placa <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control text-uppercase" id="placa" name="placa" 
+                                           value="{{ vehiculo.placa if vehiculo else '' }}" 
+                                           required maxlength="10" placeholder="ABC123 o ABC12D">
+                                    <small class="form-text text-muted">Formatos: ABC123 (autos) o ABC12D (motos)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="modelo_vehiculo_id" class="form-label">Marca y Modelo <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="modelo_vehiculo_id" name="modelo_vehiculo_id" required>
+                                        <option value="">Seleccione marca y modelo...</option>
+                                        {% set current_marca = '' %}
+                                        {% for modelo in modelos %}
+                                            {% if modelo.marca_nombre != current_marca %}
+                                                {% if current_marca != '' %}</optgroup>{% endif %}
+                                                <optgroup label="{{ modelo.marca_nombre }}">
+                                                {% set current_marca = modelo.marca_nombre %}
+                                            {% endif %}
+                                            <option value="{{ modelo.id }}" 
+                                                    {% if vehiculo and vehiculo.modelo_vehiculo_id == modelo.id %}selected{% endif %}>
+                                                {{ modelo.nombre }}
+                                            </option>
+                                        {% endfor %}
+                                        {% if modelos %}</optgroup>{% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="anio" class="form-label">Año</label>
+                                    <input type="number" class="form-control" id="anio" name="anio" 
+                                           value="{{ vehiculo.anio if vehiculo else '' }}" 
+                                           min="1900" max="2099" placeholder="2023">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="color" class="form-label">Color</label>
+                                    <input type="text" class="form-control" id="color" name="color" 
+                                           value="{{ vehiculo.color if vehiculo else '' }}" placeholder="Rojo">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="kilometraje_actual" class="form-label">Kilometraje Actual</label>
+                                    <input type="number" class="form-control" id="kilometraje_actual" name="kilometraje_actual" 
+                                           value="{{ vehiculo.kilometraje_actual if vehiculo else '' }}" 
+                                           min="0" placeholder="50000">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="numero_motor" class="form-label">Número de Motor</label>
+                                    <input type="text" class="form-control" id="numero_motor" name="numero_motor" 
+                                           value="{{ vehiculo.numero_motor if vehiculo else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="numero_chasis" class="form-label">Número de Chasis</label>
+                                    <input type="text" class="form-control" id="numero_chasis" name="numero_chasis" 
+                                           value="{{ vehiculo.numero_chasis if vehiculo else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="observaciones" class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observaciones" name="observaciones" rows="3" 
+                                      placeholder="Notas adicionales sobre el vehículo...">{{ vehiculo.observaciones if vehiculo else '' }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('vehiculos_cliente', id=cliente.id) }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Guardar Vehículo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/validacion_placas.js') }}"></script>
+<script>
+$(document).ready(function() {
+    // Aplicar validación de placa
+    aplicarValidacionPlaca('placa');
+});
+</script>
+{% endblock %}
