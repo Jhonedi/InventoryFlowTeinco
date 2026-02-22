@@ -1,124 +1,165 @@
 {% extends "base.html" %}
-
-{% block title %}Alertas de Inventario - Sistema de Inventario{% endblock %}
+{% block title %}Alertas de Inventario{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
+    <div class="row mb-3">
+        <div class="col">
             <h1><i class="bi bi-exclamation-triangle"></i> Alertas de Inventario</h1>
-            <p class="text-muted">Alertas activas del sistema</p>
         </div>
     </div>
-    
-    {% if alertas %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Prioridad</th>
-                                    <th>Tipo</th>
-                                    <th>Repuesto</th>
-                                    <th>Stock Actual</th>
-                                    <th>Stock Mínimo</th>
-                                    <th>Mensaje</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for alerta in alertas %}
-                                <tr>
-                                    <td>
-                                        {% if alerta.nivel_prioridad == 'CRITICA' %}
-                                            <span class="badge bg-danger">CRÍTICA</span>
-                                        {% elif alerta.nivel_prioridad == 'ALTA' %}
-                                            <span class="badge bg-warning">ALTA</span>
-                                        {% elif alerta.nivel_prioridad == 'MEDIA' %}
-                                            <span class="badge bg-info">MEDIA</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">BAJA</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if alerta.tipo_alerta == 'AGOTADO' %}
-                                            <i class="bi bi-x-circle text-danger"></i> Agotado
-                                        {% elif alerta.tipo_alerta == 'STOCK_BAJO' %}
-                                            <i class="bi bi-exclamation-triangle text-warning"></i> Stock Bajo
-                                        {% else %}
-                                            {{ alerta.tipo_alerta }}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <strong>{{ alerta.nombre }}</strong><br>
-                                        <small class="text-muted">{{ alerta.codigo }}</small>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-{{ 'danger' if alerta.cantidad_actual == 0 else 'warning' }}">
-                                            {{ alerta.cantidad_actual }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">{{ alerta.cantidad_minima }}</td>
-                                    <td>{{ alerta.mensaje }}</td>
-                                    <td>{{ alerta.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-success marcar-leida" 
-                                                data-alerta-id="{{ alerta.id }}"
-                                                title="Marcar como leída">
-                                            <i class="bi bi-check-circle"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link {% if seccion != 'historial' %}active{% endif %}"
+               href="{{ url_for('alertas.lista_alertas', seccion='activas') }}">
+                <i class="bi bi-bell"></i> Activas
+                {% if count_activas > 0 %}
+                <span class="badge bg-danger ms-1">{{ count_activas }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if seccion == 'historial' %}active{% endif %}"
+               href="{{ url_for('alertas.lista_alertas', seccion='historial') }}">
+                <i class="bi bi-clock-history"></i> Historial
+                {% if count_historial > 0 %}
+                <span class="badge bg-secondary ms-1">{{ count_historial }}</span>
+                {% endif %}
+            </a>
+        </li>
+    </ul>
+
+    <!-- Filtros -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <form method="GET" class="row g-2 align-items-center">
+                <input type="hidden" name="seccion" value="{{ seccion }}">
+                <div class="col-md-4">
+                    <select class="form-select" name="tipo_alerta">
+                        <option value="">Todos los tipos</option>
+                        {% for t in tipos_alerta %}
+                        <option value="{{ t }}" {% if t == tipo_alerta %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-            </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="estado">
+                        <option value="">Todos los estados</option>
+                        {% for e in (estados_activos if seccion != 'historial' else estados_historial) %}
+                        <option value="{{ e }}" {% if e == estado %}selected{% endif %}>{{ e }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary me-2"><i class="bi bi-funnel"></i> Filtrar</button>
+                    <a href="{{ url_for('alertas.lista_alertas', seccion=seccion) }}" class="btn btn-secondary"><i class="bi bi-x"></i> Limpiar</a>
+                </div>
+            </form>
         </div>
     </div>
-    {% else %}
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle"></i> No hay alertas activas en este momento
+
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Prioridad</th>
+                            <th>Repuesto</th>
+                            <th>Tipo</th>
+                            <th>Mensaje</th>
+                            <th>Estado</th>
+                            <th>Atendida por</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alerta in alertas %}
+                        {% set es_no_leida = not alerta.notificacion_leida %}
+                        <tr class="{% if es_no_leida and seccion != 'historial' %}table-warning{% endif %}">
+                            <td>
+                                {% set prio_colors = {'CRITICA': 'danger', 'ALTA': 'warning', 'MEDIA': 'info', 'BAJA': 'secondary'} %}
+                                <span class="badge bg-{{ prio_colors.get(alerta.nivel_prioridad, 'secondary') }}">
+                                    {{ alerta.nivel_prioridad }}
+                                </span>
+                            </td>
+                            <td>
+                                <div><code>{{ alerta.repuesto_codigo }}</code></div>
+                                <small>{{ alerta.repuesto_nombre }}</small>
+                            </td>
+                            <td><small>{{ alerta.tipo_alerta }}</small></td>
+                            <td><small>{{ alerta.mensaje[:80] }}{% if alerta.mensaje|length > 80 %}...{% endif %}</small></td>
+                            <td>
+                                {% set est_colors = {'NUEVA': 'danger', 'EN_PROCESO': 'warning', 'RESUELTA': 'success', 'ARCHIVADA': 'secondary'} %}
+                                <span class="badge bg-{{ est_colors.get(alerta.estado, 'secondary') }}">
+                                    {{ alerta.estado }}
+                                </span>
+                                {% if es_no_leida %}<span class="badge bg-dark ms-1">NUEVO</span>{% endif %}
+                            </td>
+                            <td><small>{{ alerta.atendida_por_nombre or '-' }}</small></td>
+                            <td><small>{{ alerta.created_at.strftime('%d/%m/%Y %H:%M') if alerta.created_at else '' }}</small></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('alertas.ver_alerta', id=alerta.id) }}" class="btn btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if es_no_leida %}
+                                    <button class="btn btn-outline-secondary marcar-leida-btn" data-alerta-id="{{ alerta.id }}" title="Marcar como leída">
+                                        <i class="bi bi-check2"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+                                No hay alertas en esta sección
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+
+            {% if total_pages > 1 %}
+            <div class="p-3">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% for p in range(1, total_pages+1) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link" href="?page={{ p }}&seccion={{ seccion }}{% if tipo_alerta %}&tipo_alerta={{ tipo_alerta }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    $('.marcar-leida').click(function() {
-        const alertaId = $(this).data('alerta-id');
-        const btn = $(this);
-        
-        $.ajax({
-            url: `/api/alertas/marcar-leida/${alertaId}`,
-            method: 'POST',
-            success: function(response) {
-                if (response.success) {
-                    btn.closest('tr').fadeOut(400, function() {
-                        $(this).remove();
-                        
-                        // Si no quedan alertas, mostrar mensaje
-                        if ($('tbody tr').length === 0) {
-                            location.reload();
-                        }
-                    });
-                }
-            },
-            error: function() {
-                alert('Error al marcar la alerta como leída');
-            }
-        });
+$(document).on('click', '.marcar-leida-btn', function(e) {
+    e.preventDefault();
+    const alertaId = $(this).data('alerta-id');
+    const btn = $(this);
+    $.ajax({
+        url: '/alertas/' + alertaId + '/marcar-leida',
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        success: function() {
+            btn.closest('tr').removeClass('table-warning');
+            btn.remove();
+            loadAlertasCount();
+        }
     });
 });
 </script>

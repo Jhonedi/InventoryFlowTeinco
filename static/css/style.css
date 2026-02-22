@@ -89,21 +89,10 @@ body {
     border-left: 4px solid;
 }
 
-.alert-success {
-    border-left-color: var(--success-color);
-}
-
-.alert-danger {
-    border-left-color: var(--danger-color);
-}
-
-.alert-warning {
-    border-left-color: var(--warning-color);
-}
-
-.alert-info {
-    border-left-color: var(--primary-color);
-}
+.alert-success { border-left-color: var(--success-color); }
+.alert-danger { border-left-color: var(--danger-color); }
+.alert-warning { border-left-color: var(--warning-color); }
+.alert-info { border-left-color: var(--primary-color); }
 
 /* Loading Spinner */
 .spinner-container {
@@ -113,11 +102,10 @@ body {
     min-height: 200px;
 }
 
-/* Notificaciones */
-.notification-badge {
-    position: relative;
-    top: -3px;
-    font-size: 0.7rem;
+/* Notificaciones badge en navbar */
+.nav-link .badge {
+    font-size: 0.65rem;
+    min-width: 18px;
 }
 
 /* Stock Status */
@@ -147,57 +135,26 @@ body {
     border-left: 4px solid;
     border-radius: 0 10px 10px 0;
 }
-
-.stats-card.primary {
-    border-left-color: var(--primary-color);
-}
-
-.stats-card.success {
-    border-left-color: var(--success-color);
-}
-
-.stats-card.warning {
-    border-left-color: var(--warning-color);
-}
-
-.stats-card.danger {
-    border-left-color: var(--danger-color);
-}
+.stats-card.primary { border-left-color: var(--primary-color); }
+.stats-card.success { border-left-color: var(--success-color); }
+.stats-card.warning { border-left-color: var(--warning-color); }
+.stats-card.danger { border-left-color: var(--danger-color); }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .navbar-brand {
-        font-size: 1rem;
-    }
-    
-    h1 {
-        font-size: 1.5rem;
-    }
-    
-    .card {
-        margin-bottom: 15px;
-    }
-    
-    .table {
-        font-size: 0.85rem;
-    }
+    .navbar-brand { font-size: 1rem; }
+    h1 { font-size: 1.5rem; }
+    .card { margin-bottom: 15px; }
+    .table { font-size: 0.85rem; }
 }
 
 /* Animations */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.fade-in {
-    animation: fadeIn 0.3s ease-in;
-}
+.fade-in { animation: fadeIn 0.3s ease-in; }
 
 /* Tooltips */
 .tooltip-inner {
@@ -207,14 +164,8 @@ body {
 }
 
 /* Search Box */
-.search-box {
-    position: relative;
-}
-
-.search-box .form-control {
-    padding-right: 40px;
-}
-
+.search-box { position: relative; }
+.search-box .form-control { padding-right: 40px; }
 .search-box .search-icon {
     position: absolute;
     right: 15px;
@@ -232,4 +183,94 @@ body {
 .dashboard-card:hover {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* ==================== NUEVOS ESTILOS ==================== */
+
+/* Timeline para historial de alertas */
+.timeline { position: relative; }
+
+.timeline-item {
+    position: relative;
+    padding-left: 50px;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: -1.5rem;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item:last-child::before { display: none; }
+
+.timeline-marker {
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px 15px;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Mensajes no leídos */
+.message-unread {
+    font-weight: bold;
+    background-color: #f0f7ff !important;
+}
+
+/* Auditoría - fila modificada */
+.audit-changed {
+    background-color: #fff9e6 !important;
+}
+
+/* Modal detalle repuesto */
+.repuesto-detail-modal .carousel-item img {
+    max-height: 280px;
+    object-fit: contain;
+    background-color: #f8f9fa;
+}
+
+/* Formato número COP */
+.cop-value {
+    font-variant-numeric: tabular-nums;
+    font-family: 'Courier New', monospace;
+}
+
+/* Estado badges - colores workflow */
+.badge-estado-pendiente { background-color: #ffc107; color: #000; }
+.badge-estado-aprobada { background-color: #0dcaf0; color: #000; }
+.badge-estado-rechazada { background-color: #dc3545; }
+.badge-estado-entregada { background-color: #198754; }
+.badge-estado-facturada { background-color: #0d6efd; }
+.badge-estado-anulada { background-color: #6c757d; }
+
+/* Breadcrumb */
+.breadcrumb { background: none; padding: 0; font-size: 0.9rem; }
+
+/* Print styles */
+@media print {
+    .no-print { display: none !important; }
+    .navbar { display: none !important; }
+    main { padding: 0 !important; }
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    .card:hover { transform: none; }
+    .btn { display: none !important; }
 }
